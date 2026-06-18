@@ -9,6 +9,7 @@ import MainLayout from "@/components/layout/MainLayout";
 
 import DashboardPage from "@/features/dashboard/pages/DashboardPage";
 import ClientesPage from "@/features/clientes/pages/ClientesPage";
+import EmpresasPage from "@/features/empresas/pages/EmpresasPage";
 
 export default function AppRouter() {
   return (
@@ -23,6 +24,11 @@ export default function AppRouter() {
           <Route
             path="clientes"
             element={<ClientesPage />}
+          />
+
+          <Route
+            path="empresas"
+            element={<EmpresasPage />}
           />
         </Route>
 

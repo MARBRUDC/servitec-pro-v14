@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import {
   BarChart3,
+  Building2,
   ClipboardList,
   FileText,
   LayoutDashboard,
@@ -71,6 +72,12 @@ export const sidebarGroups: SidebarGroup[] = [
   {
     title: "Administracion",
     items: [
+      {
+        title: "Empresas",
+        path: "/empresas",
+        icon: <Building2 size={18} />,
+        roles: ["admin"],
+      },
       {
         title: "Indicadores",
         path: "/indicadores",
