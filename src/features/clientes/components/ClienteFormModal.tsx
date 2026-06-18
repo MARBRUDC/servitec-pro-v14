@@ -3,67 +3,86 @@ import { X } from "lucide-react";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 
-import type { Empresa, EmpresaFormValues } from "../types/empresa";
-import { empresaSchema } from "../validations/empresaSchema";
+import type {
+  Cliente,
+  ClienteEmpresaOption,
+  ClienteFormValues,
+} from "../types/cliente";
+import { clienteSchema } from "../validations/clienteSchema";
 
-type EmpresaFormModalProps = {
+type ClienteFormModalProps = {
   isOpen: boolean;
-  empresa: Empresa | null;
+  cliente: Cliente | null;
+  empresas: ClienteEmpresaOption[];
   isSaving: boolean;
   onClose: () => void;
-  onSubmit: (values: EmpresaFormValues, empresaId?: string) => Promise<void>;
+  onSubmit: (values: ClienteFormValues, clienteId?: string) => Promise<void>;
 };
 
-const defaultValues: EmpresaFormValues = {
-  razon_social: "",
+const defaultValues: ClienteFormValues = {
+  empresa_id: "",
+  nombre: "",
   ruc: "",
   direccion: "",
   telefono: "",
   correo: "",
-  logo_url: "",
+  nombre_comercial: "",
+  contacto: "",
+  razon_social: "",
+  activo: "true",
 };
 
-function toFormValues(empresa: Empresa | null): EmpresaFormValues {
-  if (!empresa) {
+function toFormValues(cliente: Cliente | null): ClienteFormValues {
+  if (!cliente) {
     return defaultValues;
   }
 
   return {
-    razon_social: empresa.razon_social,
-    ruc: empresa.ruc,
-    direccion: empresa.direccion ?? "",
-    telefono: empresa.telefono ?? "",
-    correo: empresa.correo ?? "",
-    logo_url: empresa.logo_url ?? "",
+    empresa_id: cliente.empresa_id,
+    nombre: cliente.nombre,
+    ruc: cliente.ruc,
+    direccion: cliente.direccion ?? "",
+    telefono: cliente.telefono ?? "",
+    correo: cliente.correo ?? "",
+    nombre_comercial: cliente.nombre_comercial ?? "",
+    contacto: cliente.contacto ?? "",
+    razon_social: cliente.razon_social ?? "",
+    activo: cliente.activo ? "true" : "false",
   };
 }
 
-export default function EmpresaFormModal({
+export default function ClienteFormModal({
   isOpen,
-  empresa,
+  cliente,
+  empresas,
   isSaving,
   onClose,
   onSubmit,
-}: EmpresaFormModalProps) {
+}: ClienteFormModalProps) {
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<EmpresaFormValues>({
-    resolver: zodResolver(empresaSchema),
+  } = useForm<ClienteFormValues>({
+    resolver: zodResolver(clienteSchema),
     defaultValues,
   });
 
   useEffect(() => {
-    reset(toFormValues(empresa));
-  }, [empresa, reset, isOpen]);
+    reset(toFormValues(cliente));
+  }, [cliente, reset, isOpen]);
 
   if (!isOpen) {
     return null;
   }
 
-  const title = empresa ? "Editar empresa" : "Nueva empresa";
+  const title = cliente ? "Editar cliente" : "Nuevo cliente";
+
+  async function handleValidSubmit(values: ClienteFormValues) {
+    await onSubmit(values, cliente?.id);
+    reset(defaultValues);
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 px-4 py-6">
@@ -72,7 +91,7 @@ export default function EmpresaFormModal({
           <div>
             <h2 className="text-lg font-semibold text-slate-950">{title}</h2>
             <p className="text-sm text-slate-500">
-              Completa la informacion general de la empresa.
+              Completa la informacion general del cliente.
             </p>
           </div>
 
@@ -88,10 +107,57 @@ export default function EmpresaFormModal({
 
         <form
           className="overflow-y-auto px-6 py-5"
-          onSubmit={handleSubmit((values) => onSubmit(values, empresa?.id))}
+          onSubmit={handleSubmit(handleValidSubmit)}
         >
           <div className="grid gap-4 md:grid-cols-2">
             <label className="space-y-1.5 md:col-span-2">
+              <span className="text-sm font-medium text-slate-700">
+                Empresa
+              </span>
+              <select
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                {...register("empresa_id")}
+              >
+                <option value="">Selecciona una empresa</option>
+                {empresas.map((empresa) => (
+                  <option key={empresa.id} value={empresa.id}>
+                    {empresa.razon_social}
+                  </option>
+                ))}
+              </select>
+              {errors.empresa_id ? (
+                <p className="text-xs text-red-600">
+                  {errors.empresa_id.message}
+                </p>
+              ) : null}
+            </label>
+
+            <label className="space-y-1.5 md:col-span-2">
+              <span className="text-sm font-medium text-slate-700">
+                Nombre
+              </span>
+              <input
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                {...register("nombre")}
+              />
+              {errors.nombre ? (
+                <p className="text-xs text-red-600">
+                  {errors.nombre.message}
+                </p>
+              ) : null}
+            </label>
+
+            <label className="space-y-1.5">
+              <span className="text-sm font-medium text-slate-700">
+                Nombre comercial
+              </span>
+              <input
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                {...register("nombre_comercial")}
+              />
+            </label>
+
+            <label className="space-y-1.5">
               <span className="text-sm font-medium text-slate-700">
                 Razon social
               </span>
@@ -99,11 +165,6 @@ export default function EmpresaFormModal({
                 className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 {...register("razon_social")}
               />
-              {errors.razon_social ? (
-                <p className="text-xs text-red-600">
-                  {errors.razon_social.message}
-                </p>
-              ) : null}
             </label>
 
             <label className="space-y-1.5">
@@ -115,6 +176,18 @@ export default function EmpresaFormModal({
               />
               {errors.ruc ? (
                 <p className="text-xs text-red-600">{errors.ruc.message}</p>
+              ) : null}
+            </label>
+
+            <label className="space-y-1.5">
+              <span className="text-sm font-medium text-slate-700">Correo</span>
+              <input
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                type="email"
+                {...register("correo")}
+              />
+              {errors.correo ? (
+                <p className="text-xs text-red-600">{errors.correo.message}</p>
               ) : null}
             </label>
 
@@ -139,28 +212,25 @@ export default function EmpresaFormModal({
             </label>
 
             <label className="space-y-1.5">
-              <span className="text-sm font-medium text-slate-700">Email</span>
-              <input
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                type="email"
-                {...register("correo")}
-              />
-              {errors.correo ? (
-                <p className="text-xs text-red-600">{errors.correo.message}</p>
-              ) : null}
-            </label>
-
-            <label className="space-y-1.5">
               <span className="text-sm font-medium text-slate-700">
-                Logo URL
+                Contacto
               </span>
               <input
                 className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                placeholder="Preparado para carga de logo"
-                {...register("logo_url")}
+                {...register("contacto")}
               />
             </label>
 
+            <label className="space-y-1.5">
+              <span className="text-sm font-medium text-slate-700">Estado</span>
+              <select
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                {...register("activo")}
+              >
+                <option value="true">Activo</option>
+                <option value="false">Inactivo</option>
+              </select>
+            </label>
           </div>
 
           <div className="mt-6 flex justify-end gap-3 border-t border-slate-200 pt-5">
@@ -177,7 +247,7 @@ export default function EmpresaFormModal({
               disabled={isSaving}
               className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
             >
-              {isSaving ? "Guardando..." : "Guardar empresa"}
+              {isSaving ? "Guardando..." : "Guardar cliente"}
             </button>
           </div>
         </form>

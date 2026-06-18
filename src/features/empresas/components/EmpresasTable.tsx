@@ -24,7 +24,6 @@ export default function EmpresasTable({
               <th className="px-4 py-3">Empresa</th>
               <th className="px-4 py-3">RUC</th>
               <th className="px-4 py-3">Contacto</th>
-              <th className="px-4 py-3">Estado</th>
               <th className="px-4 py-3 text-right">Acciones</th>
             </tr>
           </thead>
@@ -36,9 +35,6 @@ export default function EmpresasTable({
                   <div className="font-semibold text-slate-900">
                     {empresa.razon_social}
                   </div>
-                  <div className="text-xs text-slate-500">
-                    {empresa.nombre_comercial || "Sin nombre comercial"}
-                  </div>
                 </td>
 
                 <td className="px-4 py-4 font-mono text-slate-700">
@@ -46,22 +42,10 @@ export default function EmpresasTable({
                 </td>
 
                 <td className="px-4 py-4 text-slate-600">
-                  <div>{empresa.email || "Sin email"}</div>
+                  <div>{empresa.correo || "Sin correo"}</div>
                   <div className="text-xs text-slate-500">
                     {empresa.telefono || "Sin telefono"}
                   </div>
-                </td>
-
-                <td className="px-4 py-4">
-                  <span
-                    className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
-                      empresa.estado === "Activo"
-                        ? "bg-emerald-50 text-emerald-700"
-                        : "bg-slate-100 text-slate-600"
-                    }`}
-                  >
-                    {empresa.estado}
-                  </span>
                 </td>
 
                 <td className="px-4 py-4">

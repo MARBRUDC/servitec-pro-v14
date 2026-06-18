@@ -16,7 +16,6 @@ type EmpresaRow = {
   telefono: string | null;
   correo: string | null;
   logo_url: string | null;
-  estado: Empresa["estado"];
   created_at?: string;
   updated_at?: string | null;
 };
@@ -28,7 +27,6 @@ type EmpresaDbPayload = {
   telefono: string | null;
   correo: string | null;
   logo_url: string | null;
-  estado: Empresa["estado"];
 };
 
 function emptyToNull(value: string) {
@@ -44,7 +42,6 @@ function toEmpresaPayload(values: EmpresaFormValues): EmpresaDbPayload {
     telefono: emptyToNull(values.telefono),
     correo: emptyToNull(values.correo),
     logo_url: emptyToNull(values.logo_url),
-    estado: values.estado,
   };
 }
 
@@ -52,14 +49,11 @@ function toEmpresa(row: EmpresaRow): Empresa {
   return {
     id: row.id,
     razon_social: row.razon_social,
-    nombre_comercial: null,
     ruc: row.ruc,
     direccion: row.direccion,
     telefono: row.telefono,
-    email: row.correo,
     correo: row.correo,
     logo_url: row.logo_url,
-    estado: row.estado,
     created_at: row.created_at,
     updated_at: row.updated_at,
   };
@@ -78,7 +72,7 @@ export async function getEmpresas(searchTerm: string) {
 
   let query = getEmpresasTable()
     .select(
-      "id, razon_social, ruc, direccion, telefono, correo, logo_url, estado, created_at, updated_at",
+      "id, razon_social, ruc, direccion, telefono, correo, logo_url, created_at, updated_at",
     )
     .order("razon_social", { ascending: true });
 
@@ -91,6 +85,7 @@ export async function getEmpresas(searchTerm: string) {
   const { data, error } = await query;
 
   if (error) {
+    console.error(error);
     logSupabaseError("select", error);
     throw error;
   }
@@ -107,6 +102,7 @@ export async function createEmpresa(values: EmpresaFormValues) {
     .single();
 
   if (error) {
+    console.error(error);
     logSupabaseError("insert", error);
     throw error;
   }
@@ -124,6 +120,7 @@ export async function updateEmpresa(id: string, values: EmpresaFormValues) {
     .single();
 
   if (error) {
+    console.error(error);
     logSupabaseError("update", error);
     throw error;
   }
@@ -135,6 +132,7 @@ export async function deleteEmpresa(id: string) {
   const { error } = await getEmpresasTable().delete().eq("id", id);
 
   if (error) {
+    console.error(error);
     logSupabaseError("delete", error);
     throw error;
   }

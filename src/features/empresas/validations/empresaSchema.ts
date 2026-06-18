@@ -19,7 +19,6 @@ export const empresaSchema = z.object({
       "Ingresa un email valido.",
     ),
   logo_url: z.string().trim(),
-  estado: z.enum(["Activo", "Inactivo"]),
 });
 
 export type EmpresaSchemaValues = z.infer<typeof empresaSchema>;
