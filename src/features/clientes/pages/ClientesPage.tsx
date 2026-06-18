@@ -1,13 +1,22 @@
+import EmptyState from "@/components/common/EmptyState";
+import PageContainer from "@/components/common/PageContainer";
+import PageHeader from "@/components/common/PageHeader";
+import SectionCard from "@/components/common/SectionCard";
+
 export default function ClientesPage() {
   return (
-    <div className="space-y-4">
-      <h1 className="text-3xl font-bold text-slate-800">
-        Clientes
-      </h1>
+    <PageContainer>
+      <PageHeader
+        title="Clientes"
+        description="Modulo preparado para el CRUD de clientes en un sprint posterior."
+      />
 
-      <p className="text-slate-500">
-        Aquí construiremos el CRUD de Clientes.
-      </p>
-    </div>
+      <SectionCard>
+        <EmptyState
+          title="Modulo pendiente"
+          description="Aqui se construira el CRUD de clientes cuando inicie el sprint funcional correspondiente."
+        />
+      </SectionCard>
+    </PageContainer>
   );
 }

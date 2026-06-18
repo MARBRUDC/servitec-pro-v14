@@ -5,10 +5,10 @@ import {
   Routes,
 } from "react-router-dom";
 
-import MainLayout from "../components/layout/MainLayout";
+import MainLayout from "@/components/layout/MainLayout";
 
-import DashboardPage from "../features/dashboard/pages/DashboardPage";
-import ClientesPage from "../features/clientes/pages/ClientesPage";
+import DashboardPage from "@/features/dashboard/pages/DashboardPage";
+import ClientesPage from "@/features/clientes/pages/ClientesPage";
 
 export default function AppRouter() {
   return (
