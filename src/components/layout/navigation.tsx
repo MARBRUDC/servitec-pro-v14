@@ -51,7 +51,6 @@ export const sidebarGroups: SidebarGroup[] = [
         path: "/cotizaciones",
         icon: <FileText size={18} />,
         roles: ["admin", "manager"],
-        disabled: true,
       },
       {
         title: "Ordenes",
