@@ -25,11 +25,6 @@ export function useCotizaciones(searchTerm: string) {
     queryFn: getCotizacionOptions,
   });
 
-  const nextCodigoQuery = useQuery({
-    queryKey: ["cotizaciones-next-codigo"],
-    queryFn: getNextCotizacionCodigo,
-  });
-
   const saveMutation = useMutation({
     mutationFn: ({
       values,
@@ -48,7 +43,6 @@ export function useCotizaciones(searchTerm: string) {
           : "Cotizacion creada correctamente.",
       );
       void queryClient.invalidateQueries({ queryKey: ["cotizaciones"] });
-      void queryClient.invalidateQueries({ queryKey: ["cotizaciones-next-codigo"] });
     },
     onError: (error) => {
       const message =
@@ -78,10 +72,10 @@ export function useCotizaciones(searchTerm: string) {
     cotizaciones: cotizacionesQuery.data ?? [],
     empresas: optionsQuery.data?.empresas ?? [],
     clientes: optionsQuery.data?.clientes ?? [],
-    nextCodigo: nextCodigoQuery.data ?? "COT-2026-000001",
     isLoading: cotizacionesQuery.isLoading || optionsQuery.isLoading,
     isSaving: saveMutation.isPending || deleteMutation.isPending,
     getDetalle: getCotizacionDetalle,
+    getNextCodigo: getNextCotizacionCodigo,
     refreshCotizaciones: () => cotizacionesQuery.refetch(),
     saveCotizacion: (values: CotizacionFormValues, cotizacionId?: string) =>
       saveMutation.mutateAsync({ values, cotizacionId }),

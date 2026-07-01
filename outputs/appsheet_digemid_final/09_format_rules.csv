@@ -1,0 +1,7 @@
+﻿name,table,condition,color,icon
+Vencido,LOTES,"[ALERTA_VENCIMIENTO] = ""VENCIDO""",#B42318,warning
+Vence 30 dias,LOTES,"[ALERTA_VENCIMIENTO] = ""VENCE 30 DIAS""",#DC6803,schedule
+Vence 60 dias,LOTES,"[ALERTA_VENCIMIENTO] = ""VENCE 60 DIAS""",#B54708,schedule
+Vence 90 dias,LOTES,"[ALERTA_VENCIMIENTO] = ""VENCE 90 DIAS""",#027A48,check_circle
+Sin stock,LOTES,[STOCK_ACTUAL] <= 0,#667085,block
+FEFO prioritario,LOTES,[ES_LOTE_FEFO] = TRUE,#0F766E,priority_high

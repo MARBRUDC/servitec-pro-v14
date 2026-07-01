@@ -1,0 +1,17 @@
+{
+  "primary": [
+    "Dashboard",
+    "Ingresos",
+    "Egresos",
+    "Stock",
+    "Trazabilidad",
+    "Clientes",
+    "Proveedores",
+    "Configuración"
+  ],
+  "menu": [
+    "Productos",
+    "Lotes",
+    "Documentos"
+  ]
+}

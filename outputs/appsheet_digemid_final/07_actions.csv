@@ -1,0 +1,7 @@
+﻿table,name,type,target
+LOTES,Ver trazabilidad del lote,App: go to another view within this app,"LINKTOROW([ID_LOTE], ""Trazabilidad_Detail"")"
+PRODUCTOS,Ver lotes del producto,App: go to another view within this app,"LINKTOFILTEREDVIEW(""Stock"", [ID_PRODUCTO] = [_THISROW].[ID_PRODUCTO])"
+LOTES,Registrar egreso de lote,App: go to another view within this app,"LINKTOFORM(""EGRESOS_Form"", ""ID_PRODUCTO"", [ID_PRODUCTO], ""ID_LOTE"", [ID_LOTE])"
+LOTES,Registrar documento de lote,App: go to another view within this app,"LINKTOFORM(""DOCUMENTOS_Form"", ""ID_LOTE"", [ID_LOTE])"
+INGRESOS,Abrir lote,App: go to another view within this app,"LINKTOROW([ID_LOTE], ""LOTES_Detail"")"
+EGRESOS,Abrir cliente,App: go to another view within this app,"LINKTOROW([ID_CLIENTE], ""CLIENTES_Detail"")"

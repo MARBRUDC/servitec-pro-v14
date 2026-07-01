@@ -1,0 +1,80 @@
+﻿table,column,type,key,label,ref_table,enum_values,required,editable,initial_value,valid_if,app_formula,show
+CONFIG,ID_CONFIG,Text,True,False,,[],True,False,UNIQUEID(),,,True
+CONFIG,RAZON_SOCIAL,Text,False,True,,[],True,True,,,,True
+CONFIG,RUC,Text,False,False,,[],True,True,,,,True
+CONFIG,DIRECCION,Text,False,False,,[],True,True,,,,True
+CONFIG,TELEFONO,Phone,False,False,,[],True,True,,,,True
+CONFIG,EMAIL,Email,False,False,,[],True,True,,,,True
+CONFIG,RESPONSABLE_TECNICO,Text,False,False,,[],True,True,,,,True
+CONFIG,DIRECTOR_TECNICO,Text,False,False,,[],True,True,,,,True
+CONFIG,LOGO,Image,False,False,,[],False,True,,,,True
+CONFIG,DIAS_ALERTA,Number,False,False,,[],True,True,90,,,True
+PROVEEDORES,ID_PROVEEDOR,Text,True,False,,[],True,False,UNIQUEID(),,,True
+PROVEEDORES,RUC,Text,False,False,,[],True,True,,,,True
+PROVEEDORES,RAZON_SOCIAL,Text,False,True,,[],True,True,,,,True
+PROVEEDORES,DIRECCION,Text,False,False,,[],False,True,,,,True
+PROVEEDORES,TELEFONO,Phone,False,False,,[],False,True,,,,True
+PROVEEDORES,EMAIL,Email,False,False,,[],False,True,,,,True
+PROVEEDORES,CONTACTO,Text,False,False,,[],False,True,,,,True
+PROVEEDORES,ESTADO,Enum,False,False,,"['ACTIVO', 'INACTIVO']",True,True,"""ACTIVO""","LIST(""ACTIVO"",""INACTIVO"")",,True
+CLIENTES,ID_CLIENTE,Text,True,False,,[],True,False,UNIQUEID(),,,True
+CLIENTES,RUC_DNI,Text,False,False,,[],True,True,,,,True
+CLIENTES,NOMBRE,Text,False,True,,[],True,True,,,,True
+CLIENTES,DIRECCION,Text,False,False,,[],False,True,,,,True
+CLIENTES,TELEFONO,Phone,False,False,,[],False,True,,,,True
+CLIENTES,EMAIL,Email,False,False,,[],False,True,,,,True
+CLIENTES,ESTADO,Enum,False,False,,"['ACTIVO', 'INACTIVO']",True,True,"""ACTIVO""","LIST(""ACTIVO"",""INACTIVO"")",,True
+PRODUCTOS,ID_PRODUCTO,Text,True,False,,[],True,False,UNIQUEID(),,,True
+PRODUCTOS,CODIGO,Text,False,False,,[],True,True,,"COUNT(SELECT(PRODUCTOS[ID_PRODUCTO], AND([CODIGO] = [_THISROW].[CODIGO], [ID_PRODUCTO] <> [_THISROW].[ID_PRODUCTO]))) = 0",,True
+PRODUCTOS,NOMBRE,Text,False,True,,[],True,True,,,,True
+PRODUCTOS,MARCA,Text,False,False,,[],True,True,,,,True
+PRODUCTOS,LABORATORIO,Text,False,False,,[],False,True,,,,True
+PRODUCTOS,REGISTRO_SANITARIO,Text,False,False,,[],False,True,,,,True
+PRODUCTOS,PRESENTACION,Enum,False,False,,"['CAJA', 'UNIDAD', 'BLISTER', 'FRASCO', 'BOLSA', 'AMPOLLA', 'TUBO', 'DISPLAY']",True,True,,"LIST(""CAJA"",""UNIDAD"",""BLISTER"",""FRASCO"",""BOLSA"",""AMPOLLA"",""TUBO"",""DISPLAY"")",,True
+PRODUCTOS,UNIDAD,Enum,False,False,,"['UNIDAD', 'CAJA', 'FRASCO', 'BLISTER', 'AMPOLLA', 'BOLSA']",True,True,,"LIST(""UNIDAD"",""CAJA"",""FRASCO"",""BLISTER"",""AMPOLLA"",""BOLSA"")",,True
+PRODUCTOS,TEMPERATURA,Enum,False,False,,"['AMBIENTE', 'REFRIGERADO', 'CONGELADO', 'CONTROLADA']",True,True,,"LIST(""AMBIENTE"",""REFRIGERADO"",""CONGELADO"",""CONTROLADA"")",,True
+PRODUCTOS,ESTADO,Enum,False,False,,"['ACTIVO', 'INACTIVO']",True,True,"""ACTIVO""","LIST(""ACTIVO"",""INACTIVO"")",,True
+LOTES,ID_LOTE,Text,True,False,,[],True,False,UNIQUEID(),,,True
+LOTES,ID_PRODUCTO,Ref,False,False,PRODUCTOS,[],True,True,,,,True
+LOTES,LOTE,Text,False,True,,[],True,True,,,,True
+LOTES,FECHA_FABRICACION,Date,False,False,,[],True,True,,,,True
+LOTES,FECHA_VENCIMIENTO,Date,False,False,,[],True,True,,[FECHA_VENCIMIENTO] >= [FECHA_FABRICACION],,True
+LOTES,PRECIO_COMPRA,Number,False,False,,[],True,True,,,,True
+LOTES,PRECIO_VENTA,Number,False,False,,[],True,True,,,,True
+INGRESOS,ID_INGRESO,Text,True,False,,[],True,False,UNIQUEID(),,,True
+INGRESOS,FECHA,Date,False,False,,[],True,True,TODAY(),,,True
+INGRESOS,ID_PROVEEDOR,Ref,False,False,PROVEEDORES,[],True,True,,,,True
+INGRESOS,ID_PRODUCTO,Ref,False,False,PRODUCTOS,[],True,True,,,,True
+INGRESOS,ID_LOTE,Ref,False,False,LOTES,[],True,True,,"SELECT(LOTES[ID_LOTE], [ID_PRODUCTO] = [_THISROW].[ID_PRODUCTO])",,True
+INGRESOS,GUIA,Text,False,True,,[],False,True,,,,True
+INGRESOS,FACTURA,Text,False,False,,[],False,True,,,,True
+INGRESOS,CANTIDAD,Number,False,False,,[],True,True,,[_THIS] > 0,,True
+INGRESOS,USUARIO,Text,False,False,,[],True,True,USEREMAIL(),,,True
+EGRESOS,ID_EGRESO,Text,True,False,,[],True,False,UNIQUEID(),,,True
+EGRESOS,FECHA,Date,False,False,,[],True,True,TODAY(),,,True
+EGRESOS,ID_CLIENTE,Ref,False,False,CLIENTES,[],True,True,,,,True
+EGRESOS,ID_PRODUCTO,Ref,False,False,PRODUCTOS,[],True,True,,,,True
+EGRESOS,ID_LOTE,Ref,False,False,LOTES,[],True,True,,"LIST(ANY(ORDERBY(SELECT(LOTES[ID_LOTE], AND([ID_PRODUCTO] = [_THISROW].[ID_PRODUCTO], [STOCK_ACTUAL] > 0)), [FECHA_VENCIMIENTO], TRUE, [PRIMER_INGRESO], TRUE)))",,True
+EGRESOS,GUIA,Text,False,True,,[],False,True,,,,True
+EGRESOS,FACTURA,Text,False,False,,[],False,True,,,,True
+EGRESOS,CANTIDAD,Number,False,False,,[],True,True,,"AND([_THIS] > 0, [_THIS] <= [ID_LOTE].[STOCK_ACTUAL])",,True
+EGRESOS,USUARIO,Text,False,False,,[],True,True,USEREMAIL(),,,True
+DOCUMENTOS,ID_DOCUMENTO,Text,True,False,,[],True,False,UNIQUEID(),,,True
+DOCUMENTOS,ID_LOTE,Ref,False,False,LOTES,[],True,True,,,,True
+DOCUMENTOS,TIPO_DOCUMENTO,Enum,False,True,,"['COA', 'BPM', 'BPA', 'REGISTRO_SANITARIO', 'GUIA_COMPRA', 'FACTURA_COMPRA', 'GUIA_VENTA', 'FACTURA_VENTA', 'OTRO']",True,True,,"LIST(""COA"",""BPM"",""BPA"",""REGISTRO_SANITARIO"",""GUIA_COMPRA"",""FACTURA_COMPRA"",""GUIA_VENTA"",""FACTURA_VENTA"",""OTRO"")",,True
+DOCUMENTOS,ARCHIVO,File,False,False,,[],True,True,,,,True
+DOCUMENTOS,OBSERVACION,Text,False,False,,[],False,True,,,,True
+LOTES,RELATED_INGRESOS,List,False,False,,[],False,False,,,"REF_ROWS(""INGRESOS"", ""ID_LOTE"")",True
+LOTES,RELATED_EGRESOS,List,False,False,,[],False,False,,,"REF_ROWS(""EGRESOS"", ""ID_LOTE"")",True
+LOTES,RELATED_DOCUMENTOS,List,False,False,,[],False,False,,,"REF_ROWS(""DOCUMENTOS"", ""ID_LOTE"")",True
+LOTES,TRAZABILIDAD_RESUMEN,LongText,False,False,,[],False,False,,,"CONCATENATE(""Producto: "", [ID_PRODUCTO].[NOMBRE], "" | Lote: "", [LOTE], "" | Stock: "", [STOCK_ACTUAL], "" | Vence: "", TEXT([FECHA_VENCIMIENTO]))",True
+LOTES,TOTAL_INGRESOS,Number,False,False,,[],False,False,,,"SUM(SELECT(INGRESOS[CANTIDAD], [ID_LOTE] = [_THISROW].[ID_LOTE]))",True
+LOTES,TOTAL_EGRESOS,Number,False,False,,[],False,False,,,"SUM(SELECT(EGRESOS[CANTIDAD], [ID_LOTE] = [_THISROW].[ID_LOTE]))",True
+LOTES,STOCK_ACTUAL,Number,False,False,,[],False,False,,,[TOTAL_INGRESOS] - [TOTAL_EGRESOS],True
+LOTES,DIAS_VENCIMIENTO,Number,False,False,,[],False,False,,,[FECHA_VENCIMIENTO] - TODAY(),True
+LOTES,ALERTA_VENCIMIENTO,Enum,False,False,,[],False,False,,,"IFS([STOCK_ACTUAL] <= 0, ""SIN STOCK"", [FECHA_VENCIMIENTO] < TODAY(), ""VENCIDO"", [DIAS_VENCIMIENTO] <= 30, ""VENCE 30 DIAS"", [DIAS_VENCIMIENTO] <= 60, ""VENCE 60 DIAS"", [DIAS_VENCIMIENTO] <= 90, ""VENCE 90 DIAS"", TRUE, ""VIGENTE"")",True
+LOTES,PRIMER_INGRESO,Date,False,False,,[],False,False,,,"MIN(SELECT(INGRESOS[FECHA], [ID_LOTE] = [_THISROW].[ID_LOTE]))",True
+LOTES,ORDEN_FEFO_FIFO,Number,False,False,,[],False,False,,,"COUNT(SELECT(LOTES[ID_LOTE], AND([ID_PRODUCTO] = [_THISROW].[ID_PRODUCTO], [STOCK_ACTUAL] > 0, OR([FECHA_VENCIMIENTO] < [_THISROW].[FECHA_VENCIMIENTO], AND([FECHA_VENCIMIENTO] = [_THISROW].[FECHA_VENCIMIENTO], [PRIMER_INGRESO] < [_THISROW].[PRIMER_INGRESO]))))) + 1",True
+LOTES,ES_LOTE_FEFO,Yes/No,False,False,,[],False,False,,,[ORDEN_FEFO_FIFO] = 1,True
+EGRESOS,STOCK_DISPONIBLE_LOTE,Number,False,False,,[],False,False,,,[ID_LOTE].[STOCK_ACTUAL],True
+EGRESOS,ES_FEFO_VALIDO,Yes/No,False,False,,[],False,False,,,"[ID_LOTE] = ANY(ORDERBY(SELECT(LOTES[ID_LOTE], AND([ID_PRODUCTO] = [_THISROW].[ID_PRODUCTO], [STOCK_ACTUAL] > 0)), [FECHA_VENCIMIENTO], TRUE, [PRIMER_INGRESO], TRUE))",True

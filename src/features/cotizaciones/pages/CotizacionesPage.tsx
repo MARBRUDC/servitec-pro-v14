@@ -28,10 +28,10 @@ function CotizacionesContent() {
     cotizaciones,
     empresas,
     clientes,
-    nextCodigo,
     isLoading,
     isSaving,
     getDetalle,
+    getNextCodigo,
     refreshCotizaciones,
     saveCotizacion,
     removeCotizacion,
@@ -145,7 +145,7 @@ function CotizacionesContent() {
         cotizacion={selectedCotizacion}
         empresas={empresas}
         clientes={clientes}
-        nextCodigo={nextCodigo}
+        getNextCodigo={getNextCodigo}
         isSaving={isSaving}
         onClose={closeModal}
         onSubmit={handleSubmit}

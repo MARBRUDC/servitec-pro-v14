@@ -1,0 +1,35 @@
+{
+  "ux": {
+    "starting_view": "Dashboard",
+    "primary_navigation": [
+      "Dashboard",
+      "Ingresos",
+      "Egresos",
+      "Stock",
+      "Trazabilidad",
+      "Clientes",
+      "Proveedores",
+      "Configuración"
+    ],
+    "menu_navigation": [
+      "Productos",
+      "Lotes",
+      "Documentos"
+    ],
+    "dashboard_interactive_mode": true,
+    "search_enabled_for": [
+      "LOTES",
+      "PRODUCTOS",
+      "CLIENTES",
+      "PROVEEDORES"
+    ]
+  },
+  "branding": {
+    "app_name": "Droguería - Trazabilidad DIGEMID",
+    "logo_source": "CONFIG[LOGO]",
+    "theme": "Light",
+    "primary_color": "#0F766E",
+    "background_color": "#FFFFFF",
+    "header_logo": true
+  }
+}

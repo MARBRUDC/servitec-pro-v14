@@ -58,8 +58,12 @@ function logSupabaseError(action: string, error: unknown) {
   console.error(`[Supabase][cotizaciones][${action}]`, error);
 }
 
+function getCurrentYear() {
+  return new Date().getFullYear();
+}
+
 function parseCotizacionNumber(value: string | null | undefined) {
-  const currentYear = new Date().getFullYear();
+  const currentYear = getCurrentYear();
   const formattedMatch = value?.match(/^COT-(\d{4})-(\d{6})$/);
 
   if (formattedMatch) {
@@ -72,7 +76,7 @@ function parseCotizacionNumber(value: string | null | undefined) {
 }
 
 function formatCotizacionCodigo(number: number) {
-  return `COT-${new Date().getFullYear()}-${String(number).padStart(6, "0")}`;
+  return `COT-${getCurrentYear()}-${String(number).padStart(6, "0")}`;
 }
 
 function normalizeTipoServicio(value: string | null | undefined): TipoServicio {
@@ -113,9 +117,20 @@ function normalizeTipoServicio(value: string | null | undefined): TipoServicio {
   }
 }
 
-export async function getNextCotizacionCodigo() {
+export async function getNextCotizacionCodigo(empresaId: string) {
+  if (!empresaId) {
+    return formatCotizacionCodigo(1);
+  }
+
+  const currentYear = getCurrentYear();
+  const startOfYear = `${currentYear}-01-01T00:00:00.000Z`;
+  const startOfNextYear = `${currentYear + 1}-01-01T00:00:00.000Z`;
+
   const { data, error } = await table("cotizaciones")
     .select("codigo, numero")
+    .eq("empresa_id", empresaId)
+    .gte("created_at", startOfYear)
+    .lt("created_at", startOfNextYear)
     .order("created_at", { ascending: false })
     .limit(1000);
 
@@ -490,7 +505,7 @@ async function insertCotizacionChildren(cotizacionId: string, values: Cotizacion
 }
 
 export async function createCotizacion(values: CotizacionFormValues) {
-  const codigo = values.codigo || (await getNextCotizacionCodigo());
+  const codigo = await getNextCotizacionCodigo(values.empresa_id);
   const { data, error } = await table("cotizaciones")
     .insert(await toCotizacionPayload({ ...values, codigo }))
     .select()

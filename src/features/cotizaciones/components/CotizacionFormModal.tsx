@@ -21,7 +21,7 @@ type CotizacionFormModalProps = {
   cotizacion: CotizacionDetalle | null;
   empresas: CotizacionEmpresaOption[];
   clientes: CotizacionClienteOption[];
-  nextCodigo: string;
+  getNextCodigo: (empresaId: string) => Promise<string>;
   isSaving: boolean;
   onClose: () => void;
   onSubmit: (values: CotizacionFormValues, cotizacionId?: string) => Promise<void>;
@@ -149,7 +149,7 @@ export default function CotizacionFormModal({
   cotizacion,
   empresas,
   clientes,
-  nextCodigo,
+  getNextCodigo,
   isSaving,
   onClose,
   onSubmit,
@@ -159,6 +159,7 @@ export default function CotizacionFormModal({
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors },
   } = useForm<CotizacionFormValues>({
     resolver: cotizacionResolver,
@@ -189,8 +190,30 @@ export default function CotizacionFormModal({
   });
 
   useEffect(() => {
-    reset(cotizacion ?? { ...defaultValues, codigo: nextCodigo });
-  }, [cotizacion, nextCodigo, reset, isOpen]);
+    reset(cotizacion ?? defaultValues);
+  }, [cotizacion, reset, isOpen]);
+
+  useEffect(() => {
+    if (!isOpen || cotizacion || !selectedEmpresaId) {
+      return;
+    }
+
+    let isCurrent = true;
+
+    getNextCodigo(selectedEmpresaId)
+      .then((codigo) => {
+        if (isCurrent) {
+          setValue("codigo", codigo, { shouldDirty: false, shouldValidate: true });
+        }
+      })
+      .catch((error: unknown) => {
+        console.error(error);
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [cotizacion, getNextCodigo, isOpen, selectedEmpresaId, setValue]);
 
   if (!isOpen) {
     return null;
@@ -198,7 +221,7 @@ export default function CotizacionFormModal({
 
   async function submit(valuesToSubmit: CotizacionFormValues) {
     await onSubmit(valuesToSubmit, cotizacion?.id);
-    reset({ ...defaultValues, codigo: nextCodigo });
+    reset(defaultValues);
   }
 
   return (

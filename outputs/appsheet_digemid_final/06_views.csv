@@ -1,0 +1,12 @@
+﻿name,type,data,position,icon
+Dashboard,Dashboard,"LOTES_ALERTA_DIGEMID,STOCK_DISPONIBLE,INGRESOS,EGRESOS",Primary,dashboard
+Ingresos,Table,INGRESOS,Primary,download
+Egresos,Table,EGRESOS,Primary,upload
+Stock,Table,STOCK_DISPONIBLE,Primary,inventory
+Trazabilidad,Detail,TRAZABILIDAD_LOTES,Primary,search
+Clientes,Deck,CLIENTES,Primary,people
+Proveedores,Deck,PROVEEDORES,Primary,local_shipping
+Configuración,Detail,CONFIG,Primary,settings
+Productos,Deck,PRODUCTOS,Menu,medication
+Lotes,Table,LOTES,Menu,category
+Documentos,Gallery,DOCUMENTOS,Menu,attach_file

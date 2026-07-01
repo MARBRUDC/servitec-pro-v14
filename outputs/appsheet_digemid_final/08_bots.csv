@@ -1,0 +1,5 @@
+﻿name,event,table,condition,task
+Alerta lotes vencidos,Scheduled daily,LOTES,"SELECT(LOTES[ID_LOTE], AND([STOCK_ACTUAL] > 0, [FECHA_VENCIMIENTO] < TODAY()))",Email
+Alerta lotes por vencer 30 dias,Scheduled daily,LOTES,"SELECT(LOTES[ID_LOTE], AND([STOCK_ACTUAL] > 0, [DIAS_VENCIMIENTO] >= 0, [DIAS_VENCIMIENTO] <= 30))",Email
+Alerta egreso registrado,Data change adds only,EGRESOS,TRUE,Notification
+Alerta documento faltante,Scheduled weekly,LOTES,"SELECT(LOTES[ID_LOTE], AND([STOCK_ACTUAL] > 0, COUNT([RELATED_DOCUMENTOS]) = 0))",Email
