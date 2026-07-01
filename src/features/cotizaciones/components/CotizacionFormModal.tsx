@@ -1,11 +1,7 @@
-import { zodResolver } from "@hookform/resolvers/zod";
+﻿import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, Trash2, X } from "lucide-react";
 import { useEffect } from "react";
-import {
-  useFieldArray,
-  useForm,
-  useWatch,
-} from "react-hook-form";
+import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import type { Control, Resolver, UseFormRegister } from "react-hook-form";
 
 import { calculateCotizacionTotals } from "../services/cotizacionesService";
@@ -25,6 +21,7 @@ type CotizacionFormModalProps = {
   cotizacion: CotizacionDetalle | null;
   empresas: CotizacionEmpresaOption[];
   clientes: CotizacionClienteOption[];
+  nextCodigo: string;
   isSaving: boolean;
   onClose: () => void;
   onSubmit: (values: CotizacionFormValues, cotizacionId?: string) => Promise<void>;
@@ -49,9 +46,9 @@ const emptyLine: CotizacionLineaFormValues = {
 const defaultValues: CotizacionFormValues = {
   empresa_id: "",
   cliente_id: "",
-  codigo: "",
+  codigo: "COT-2026-000001",
   tipo_cotizacion: "Mantenimiento preventivo",
-  modo_servicio: "Servicio general",
+  modo_servicio: "Servicio General",
   estado: "Borrador",
   titulo: "",
   descripcion: "",
@@ -66,10 +63,15 @@ const defaultValues: CotizacionFormValues = {
     },
   ],
   productos: [],
+  alquileres: [],
 };
 
 function lineTotal(line?: Partial<CotizacionLineaFormValues>) {
   return Number(line?.cantidad || 0) * Number(line?.precio_unitario || 0);
+}
+
+function MoneyTotal({ value }: { value: number }) {
+  return <span className="text-sm font-semibold text-slate-700">S/ {value.toFixed(2)}</span>;
 }
 
 function EquipoActivitiesFields({
@@ -89,7 +91,7 @@ function EquipoActivitiesFields({
   return (
     <div className="space-y-3 md:col-span-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-semibold text-slate-700">Actividades</p>
+        <p className="text-sm font-semibold text-slate-700">Actividades del equipo</p>
         <button
           type="button"
           className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm"
@@ -108,32 +110,26 @@ function EquipoActivitiesFields({
           <input
             placeholder="Descripcion"
             className="rounded-lg border px-3 py-2 text-sm md:col-span-2"
-            {...register(
-              `equipos.${equipoIndex}.actividades.${activityIndex}.descripcion`,
-            )}
+            {...register(`equipos.${equipoIndex}.actividades.${activityIndex}.descripcion`)}
           />
           <input
             type="number"
             placeholder="Cantidad"
             className="rounded-lg border px-3 py-2 text-sm"
-            {...register(
-              `equipos.${equipoIndex}.actividades.${activityIndex}.cantidad`,
-              { valueAsNumber: true },
-            )}
+            {...register(`equipos.${equipoIndex}.actividades.${activityIndex}.cantidad`, {
+              valueAsNumber: true,
+            })}
           />
           <input
             type="number"
             placeholder="Precio unitario"
             className="rounded-lg border px-3 py-2 text-sm"
-            {...register(
-              `equipos.${equipoIndex}.actividades.${activityIndex}.precio_unitario`,
-              { valueAsNumber: true },
-            )}
+            {...register(`equipos.${equipoIndex}.actividades.${activityIndex}.precio_unitario`, {
+              valueAsNumber: true,
+            })}
           />
           <div className="flex items-center gap-2">
-            <span className="flex-1 text-sm font-semibold text-slate-700">
-              S/ {lineTotal(watchedActivities?.[activityIndex]).toFixed(2)}
-            </span>
+            <MoneyTotal value={lineTotal(watchedActivities?.[activityIndex])} />
             <button
               type="button"
               className="rounded-lg border px-3 py-2 text-red-600"
@@ -153,6 +149,7 @@ export default function CotizacionFormModal({
   cotizacion,
   empresas,
   clientes,
+  nextCodigo,
   isSaving,
   onClose,
   onSubmit,
@@ -174,20 +171,26 @@ export default function CotizacionFormModal({
   });
   const equipos = useFieldArray({ control, name: "equipos" });
   const productos = useFieldArray({ control, name: "productos" });
+  const alquileres = useFieldArray({ control, name: "alquileres" });
   const values = useWatch({ control });
-  const modoServicio = values.modo_servicio ?? "Servicio general";
+  const selectedEmpresaId = values.empresa_id ?? "";
+  const filteredClientes = selectedEmpresaId
+    ? clientes.filter((cliente) => cliente.empresa_id === selectedEmpresaId)
+    : clientes;
+  const modalidad = values.modo_servicio ?? "Servicio General";
+  const fecha = new Date().toLocaleDateString("es-PE");
   const totals = calculateCotizacionTotals({
     ...defaultValues,
     ...values,
-    actividades_generales: (values.actividades_generales ??
-      []) as CotizacionLineaFormValues[],
+    actividades_generales: (values.actividades_generales ?? []) as CotizacionLineaFormValues[],
     equipos: (values.equipos ?? []) as CotizacionEquipoFormValues[],
     productos: (values.productos ?? []) as CotizacionProductoFormValues[],
+    alquileres: (values.alquileres ?? []) as CotizacionLineaFormValues[],
   });
 
   useEffect(() => {
-    reset(cotizacion ?? defaultValues);
-  }, [cotizacion, reset, isOpen]);
+    reset(cotizacion ?? { ...defaultValues, codigo: nextCodigo });
+  }, [cotizacion, nextCodigo, reset, isOpen]);
 
   if (!isOpen) {
     return null;
@@ -195,7 +198,7 @@ export default function CotizacionFormModal({
 
   async function submit(valuesToSubmit: CotizacionFormValues) {
     await onSubmit(valuesToSubmit, cotizacion?.id);
-    reset(defaultValues);
+    reset({ ...defaultValues, codigo: nextCodigo });
   }
 
   return (
@@ -207,7 +210,7 @@ export default function CotizacionFormModal({
               {cotizacion ? "Editar cotizacion" : "Nueva cotizacion"}
             </h2>
             <p className="text-sm text-slate-500">
-              Cotizacion SERVITEC PRO por servicio, equipo o repuestos.
+              Flujo SERVITEC PRO para servicios tecnicos, repuestos y alquileres.
             </p>
           </div>
           <button
@@ -220,92 +223,69 @@ export default function CotizacionFormModal({
           </button>
         </div>
 
-        <form
-          className="overflow-y-auto px-6 py-5"
-          onSubmit={handleSubmit(submit)}
-        >
+        <form className="overflow-y-auto px-6 py-5" onSubmit={handleSubmit(submit)}>
           <div className="grid gap-4 md:grid-cols-2">
             <label className="space-y-1.5">
               <span className="text-sm font-medium text-slate-700">Empresa</span>
-              <select
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-                {...register("empresa_id")}
-              >
+              <select className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" {...register("empresa_id")}>
                 <option value="">Selecciona empresa</option>
                 {empresas.map((empresa) => (
-                  <option key={empresa.id} value={empresa.id}>
-                    {empresa.razon_social}
-                  </option>
+                  <option key={empresa.id} value={empresa.id}>{empresa.razon_social}</option>
                 ))}
               </select>
-              {errors.empresa_id ? (
-                <p className="text-xs text-red-600">{errors.empresa_id.message}</p>
-              ) : null}
+              {errors.empresa_id ? <p className="text-xs text-red-600">{errors.empresa_id.message}</p> : null}
             </label>
 
             <label className="space-y-1.5">
               <span className="text-sm font-medium text-slate-700">Cliente</span>
-              <select
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-                {...register("cliente_id")}
-              >
+              <select className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" {...register("cliente_id")}>
                 <option value="">Selecciona cliente</option>
-                {clientes.map((cliente) => (
-                  <option key={cliente.id} value={cliente.id}>
-                    {cliente.nombre}
-                  </option>
+                {filteredClientes.map((cliente) => (
+                  <option key={cliente.id} value={cliente.id}>{cliente.nombre}</option>
                 ))}
               </select>
-              {errors.cliente_id ? (
-                <p className="text-xs text-red-600">{errors.cliente_id.message}</p>
-              ) : null}
+              {errors.cliente_id ? <p className="text-xs text-red-600">{errors.cliente_id.message}</p> : null}
             </label>
 
             <label className="space-y-1.5">
               <span className="text-sm font-medium text-slate-700">Numero</span>
-              <input
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-                {...register("codigo")}
-              />
+              <input readOnly className="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-600" {...register("codigo")} />
             </label>
 
             <label className="space-y-1.5">
-              <span className="text-sm font-medium text-slate-700">
-                Tipo de servicio
-              </span>
-              <select
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-                {...register("tipo_cotizacion")}
-              >
+              <span className="text-sm font-medium text-slate-700">Fecha</span>
+              <input readOnly value={fecha} className="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-600" />
+            </label>
+
+            <label className="space-y-1.5">
+              <span className="text-sm font-medium text-slate-700">Tipo de servicio</span>
+              <select className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" {...register("tipo_cotizacion")}>
                 <option value="Mantenimiento preventivo">Mantenimiento preventivo</option>
                 <option value="Mantenimiento correctivo">Mantenimiento correctivo</option>
-                <option value="Calibración">Calibracion</option>
-                <option value="Instalación">Instalacion</option>
-                <option value="Diagnóstico">Diagnostico</option>
+                <option value="Calibración">Calibración</option>
+                <option value="Certificación">Certificación</option>
+                <option value="Diagnóstico">Diagnóstico</option>
+                <option value="Instalación">Instalación</option>
+                <option value="Puesta en marcha">Puesta en marcha</option>
+                <option value="Reparación">Reparación</option>
                 <option value="Venta de repuestos">Venta de repuestos</option>
+                <option value="Servicio integral">Servicio integral</option>
               </select>
             </label>
 
             <label className="space-y-1.5">
-              <span className="text-sm font-medium text-slate-700">
-                Modo de cotizacion
-              </span>
-              <select
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-                {...register("modo_servicio")}
-              >
-                <option value="Servicio general">Servicio general</option>
-                <option value="Por equipo">Por equipo</option>
-                <option value="Venta de repuestos">Venta de repuestos</option>
+              <span className="text-sm font-medium text-slate-700">Modalidad</span>
+              <select className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" {...register("modo_servicio")}>
+                <option value="Servicio General">Servicio General</option>
+                <option value="Por Equipos">Por Equipos</option>
+                <option value="Venta de Repuestos">Venta de Repuestos</option>
+                <option value="Alquiler">Alquiler</option>
               </select>
             </label>
 
             <label className="space-y-1.5">
               <span className="text-sm font-medium text-slate-700">Estado</span>
-              <select
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-                {...register("estado")}
-              >
+              <select className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" {...register("estado")}>
                 <option value="Borrador">Borrador</option>
                 <option value="Enviada">Enviada</option>
                 <option value="Aprobada">Aprobada</option>
@@ -315,212 +295,100 @@ export default function CotizacionFormModal({
 
             <label className="space-y-1.5 md:col-span-2">
               <span className="text-sm font-medium text-slate-700">Titulo</span>
-              <input
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-                {...register("titulo")}
-              />
+              <input className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" {...register("titulo")} />
+              {errors.titulo ? <p className="text-xs text-red-600">{errors.titulo.message}</p> : null}
             </label>
 
             <label className="space-y-1.5 md:col-span-2">
               <span className="text-sm font-medium text-slate-700">Descripcion</span>
-              <textarea
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-                rows={2}
-                {...register("descripcion")}
-              />
+              <textarea className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" rows={2} {...register("descripcion")} />
             </label>
           </div>
 
-          {modoServicio === "Servicio general" ? (
+          {modalidad === "Servicio General" ? (
             <div className="mt-6 space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-slate-900">
-                  Actividades generales
-                </h3>
-                <button
-                  type="button"
-                  className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm"
-                  onClick={() => actividadesGenerales.append(emptyLine)}
-                >
-                  <Plus size={15} />
-                  Actividad
+                <h3 className="font-semibold text-slate-900">Actividades generales</h3>
+                <button type="button" className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm" onClick={() => actividadesGenerales.append(emptyLine)}>
+                  <Plus size={15} /> Actividad
                 </button>
               </div>
               {actividadesGenerales.fields.map((field, index) => (
-                <div
-                  key={field.id}
-                  className="grid gap-3 rounded-lg border border-slate-200 p-4 md:grid-cols-5"
-                >
-                  <input
-                    placeholder="Descripcion"
-                    className="rounded-lg border px-3 py-2 text-sm md:col-span-2"
-                    {...register(`actividades_generales.${index}.descripcion`)}
-                  />
-                  <input
-                    type="number"
-                    placeholder="Cantidad"
-                    className="rounded-lg border px-3 py-2 text-sm"
-                    {...register(`actividades_generales.${index}.cantidad`, {
-                      valueAsNumber: true,
-                    })}
-                  />
-                  <input
-                    type="number"
-                    placeholder="Precio unitario"
-                    className="rounded-lg border px-3 py-2 text-sm"
-                    {...register(`actividades_generales.${index}.precio_unitario`, {
-                      valueAsNumber: true,
-                    })}
-                  />
+                <div key={field.id} className="grid gap-3 rounded-lg border border-slate-200 p-4 md:grid-cols-5">
+                  <input placeholder="Descripcion" className="rounded-lg border px-3 py-2 text-sm md:col-span-2" {...register(`actividades_generales.${index}.descripcion`)} />
+                  <input type="number" placeholder="Cantidad" className="rounded-lg border px-3 py-2 text-sm" {...register(`actividades_generales.${index}.cantidad`, { valueAsNumber: true })} />
+                  <input type="number" placeholder="Precio unitario" className="rounded-lg border px-3 py-2 text-sm" {...register(`actividades_generales.${index}.precio_unitario`, { valueAsNumber: true })} />
                   <div className="flex items-center gap-2">
-                    <span className="flex-1 text-sm font-semibold text-slate-700">
-                      S/ {lineTotal(values.actividades_generales?.[index]).toFixed(2)}
-                    </span>
-                    <button
-                      type="button"
-                      className="rounded-lg border px-3 py-2 text-red-600"
-                      onClick={() => actividadesGenerales.remove(index)}
-                    >
-                      <Trash2 size={15} />
-                    </button>
+                    <MoneyTotal value={lineTotal(values.actividades_generales?.[index])} />
+                    <button type="button" className="rounded-lg border px-3 py-2 text-red-600" onClick={() => actividadesGenerales.remove(index)}><Trash2 size={15} /></button>
                   </div>
                 </div>
               ))}
             </div>
           ) : null}
 
-          {modoServicio === "Por equipo" ? (
+          {modalidad === "Por Equipos" ? (
             <div className="mt-6 space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-slate-900">Equipos</h3>
-                <button
-                  type="button"
-                  className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm"
-                  onClick={() =>
-                    equipos.append({
-                      equipo: "",
-                      marca: "",
-                      modelo: "",
-                      serie: "",
-                      actividades: [emptyLine],
-                    })
-                  }
-                >
-                  <Plus size={15} />
-                  Equipo
+                <button type="button" className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm" onClick={() => equipos.append({ equipo: "", marca: "", modelo: "", serie: "", actividades: [emptyLine] })}>
+                  <Plus size={15} /> Equipo
                 </button>
               </div>
               {equipos.fields.map((field, index) => (
-                <div
-                  key={field.id}
-                  className="grid gap-3 rounded-lg border border-slate-200 p-4 md:grid-cols-4"
-                >
-                  <input
-                    placeholder="Equipo"
-                    className="rounded-lg border px-3 py-2 text-sm"
-                    {...register(`equipos.${index}.equipo`)}
-                  />
-                  <input
-                    placeholder="Marca"
-                    className="rounded-lg border px-3 py-2 text-sm"
-                    {...register(`equipos.${index}.marca`)}
-                  />
-                  <input
-                    placeholder="Modelo"
-                    className="rounded-lg border px-3 py-2 text-sm"
-                    {...register(`equipos.${index}.modelo`)}
-                  />
+                <div key={field.id} className="grid gap-3 rounded-lg border border-slate-200 p-4 md:grid-cols-4">
+                  <input placeholder="Equipo" className="rounded-lg border px-3 py-2 text-sm" {...register(`equipos.${index}.equipo`)} />
+                  <input placeholder="Marca" className="rounded-lg border px-3 py-2 text-sm" {...register(`equipos.${index}.marca`)} />
+                  <input placeholder="Modelo" className="rounded-lg border px-3 py-2 text-sm" {...register(`equipos.${index}.modelo`)} />
                   <div className="flex gap-2">
-                    <input
-                      placeholder="Serie"
-                      className="w-full rounded-lg border px-3 py-2 text-sm"
-                      {...register(`equipos.${index}.serie`)}
-                    />
-                    <button
-                      type="button"
-                      className="rounded-lg border px-3 text-red-600"
-                      onClick={() => equipos.remove(index)}
-                    >
-                      <Trash2 size={15} />
-                    </button>
+                    <input placeholder="Serie" className="w-full rounded-lg border px-3 py-2 text-sm" {...register(`equipos.${index}.serie`)} />
+                    <button type="button" className="rounded-lg border px-3 text-red-600" onClick={() => equipos.remove(index)}><Trash2 size={15} /></button>
                   </div>
-                  <EquipoActivitiesFields
-                    control={control}
-                    register={register}
-                    equipoIndex={index}
-                  />
+                  <EquipoActivitiesFields control={control} register={register} equipoIndex={index} />
                 </div>
               ))}
             </div>
           ) : null}
 
-          {modoServicio === "Venta de repuestos" ? (
+          {modalidad === "Venta de Repuestos" ? (
             <div className="mt-6 space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-slate-900">
-                  Productos/Repuestos
-                </h3>
-                <button
-                  type="button"
-                  className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm"
-                  onClick={() =>
-                    productos.append({
-                      descripcion: "",
-                      marca: "",
-                      modelo: "",
-                      cantidad: 1,
-                      precio_unitario: 0,
-                    })
-                  }
-                >
-                  <Plus size={15} />
-                  Producto
+                <h3 className="font-semibold text-slate-900">Productos/Repuestos</h3>
+                <button type="button" className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm" onClick={() => productos.append({ descripcion: "", marca: "", modelo: "", cantidad: 1, precio_unitario: 0 })}>
+                  <Plus size={15} /> Producto
                 </button>
               </div>
               {productos.fields.map((field, index) => (
-                <div
-                  key={field.id}
-                  className="grid gap-3 rounded-lg border border-slate-200 p-4 md:grid-cols-6"
-                >
-                  <input
-                    placeholder="Descripcion"
-                    className="rounded-lg border px-3 py-2 text-sm md:col-span-2"
-                    {...register(`productos.${index}.descripcion`)}
-                  />
-                  <input
-                    placeholder="Marca"
-                    className="rounded-lg border px-3 py-2 text-sm"
-                    {...register(`productos.${index}.marca`)}
-                  />
-                  <input
-                    placeholder="Modelo"
-                    className="rounded-lg border px-3 py-2 text-sm"
-                    {...register(`productos.${index}.modelo`)}
-                  />
-                  <input
-                    type="number"
-                    placeholder="Cantidad"
-                    className="rounded-lg border px-3 py-2 text-sm"
-                    {...register(`productos.${index}.cantidad`, {
-                      valueAsNumber: true,
-                    })}
-                  />
+                <div key={field.id} className="grid gap-3 rounded-lg border border-slate-200 p-4 md:grid-cols-6">
+                  <input placeholder="Descripcion" className="rounded-lg border px-3 py-2 text-sm md:col-span-2" {...register(`productos.${index}.descripcion`)} />
+                  <input placeholder="Marca" className="rounded-lg border px-3 py-2 text-sm" {...register(`productos.${index}.marca`)} />
+                  <input placeholder="Modelo" className="rounded-lg border px-3 py-2 text-sm" {...register(`productos.${index}.modelo`)} />
+                  <input type="number" placeholder="Cantidad" className="rounded-lg border px-3 py-2 text-sm" {...register(`productos.${index}.cantidad`, { valueAsNumber: true })} />
                   <div className="flex gap-2">
-                    <input
-                      type="number"
-                      placeholder="Precio unitario"
-                      className="w-full rounded-lg border px-3 py-2 text-sm"
-                      {...register(`productos.${index}.precio_unitario`, {
-                        valueAsNumber: true,
-                      })}
-                    />
-                    <button
-                      type="button"
-                      className="rounded-lg border px-3 text-red-600"
-                      onClick={() => productos.remove(index)}
-                    >
-                      <Trash2 size={15} />
-                    </button>
+                    <input type="number" placeholder="Precio unitario" className="w-full rounded-lg border px-3 py-2 text-sm" {...register(`productos.${index}.precio_unitario`, { valueAsNumber: true })} />
+                    <button type="button" className="rounded-lg border px-3 text-red-600" onClick={() => productos.remove(index)}><Trash2 size={15} /></button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : null}
+
+          {modalidad === "Alquiler" ? (
+            <div className="mt-6 space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-slate-900">Equipos o servicios alquilados</h3>
+                <button type="button" className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm" onClick={() => alquileres.append(emptyLine)}>
+                  <Plus size={15} /> Alquiler
+                </button>
+              </div>
+              {alquileres.fields.map((field, index) => (
+                <div key={field.id} className="grid gap-3 rounded-lg border border-slate-200 p-4 md:grid-cols-5">
+                  <input placeholder="Descripcion" className="rounded-lg border px-3 py-2 text-sm md:col-span-2" {...register(`alquileres.${index}.descripcion`)} />
+                  <input type="number" placeholder="Cantidad" className="rounded-lg border px-3 py-2 text-sm" {...register(`alquileres.${index}.cantidad`, { valueAsNumber: true })} />
+                  <input type="number" placeholder="Precio unitario" className="rounded-lg border px-3 py-2 text-sm" {...register(`alquileres.${index}.precio_unitario`, { valueAsNumber: true })} />
+                  <div className="flex items-center gap-2">
+                    <MoneyTotal value={lineTotal(values.alquileres?.[index])} />
+                    <button type="button" className="rounded-lg border px-3 py-2 text-red-600" onClick={() => alquileres.remove(index)}><Trash2 size={15} /></button>
                   </div>
                 </div>
               ))}
@@ -529,29 +397,13 @@ export default function CotizacionFormModal({
 
           <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-5">
             <div className="flex gap-4 text-sm">
-              <span>
-                Subtotal: <strong>S/ {totals.subtotal.toFixed(2)}</strong>
-              </span>
-              <span>
-                IGV 18%: <strong>S/ {totals.igv.toFixed(2)}</strong>
-              </span>
-              <span>
-                Total: <strong>S/ {totals.total.toFixed(2)}</strong>
-              </span>
+              <span>Subtotal: <strong>S/ {totals.subtotal.toFixed(2)}</strong></span>
+              <span>IGV 18%: <strong>S/ {totals.igv.toFixed(2)}</strong></span>
+              <span>Total: <strong>S/ {totals.total.toFixed(2)}</strong></span>
             </div>
             <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={onClose}
-                className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700"
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                disabled={isSaving}
-                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-70"
-              >
+              <button type="button" onClick={onClose} className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700">Cancelar</button>
+              <button type="submit" disabled={isSaving} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-70">
                 {isSaving ? "Guardando..." : "Guardar cotizacion"}
               </button>
             </div>

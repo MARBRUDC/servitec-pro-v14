@@ -21,7 +21,7 @@ function findName<T extends { id: string }>(
   getName: (record: T) => string,
 ) {
   const record = records.find((item) => item.id === id);
-  return record ? getName(record) : "No encontrado";
+  return record ? getName(record) : "";
 }
 
 export default function CotizacionesTable({
@@ -58,10 +58,14 @@ export default function CotizacionesTable({
                   </div>
                 </td>
                 <td className="px-4 py-4 text-slate-700">
-                  {findName(empresas, cotizacion.empresa_id, (item) => item.razon_social)}
+                  {cotizacion.empresa_nombre ||
+                    findName(empresas, cotizacion.empresa_id, (item) => item.razon_social) ||
+                    cotizacion.empresa_id}
                 </td>
                 <td className="px-4 py-4 text-slate-700">
-                  {findName(clientes, cotizacion.cliente_id, (item) => item.nombre)}
+                  {cotizacion.cliente_nombre ||
+                    findName(clientes, cotizacion.cliente_id, (item) => item.nombre) ||
+                    cotizacion.cliente_id}
                 </td>
                 <td className="px-4 py-4">
                   <span className="inline-flex rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">

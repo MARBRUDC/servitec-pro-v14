@@ -1,23 +1,29 @@
-export type CotizacionEstado = "Borrador" | "Enviada" | "Aprobada" | "Rechazada";
+﻿export type CotizacionEstado = "Borrador" | "Enviada" | "Aprobada" | "Rechazada";
 
 export type TipoServicio =
   | "Mantenimiento preventivo"
   | "Mantenimiento correctivo"
   | "Calibración"
-  | "Instalación"
+  | "Certificación"
   | "Diagnóstico"
-  | "Venta de repuestos";
+  | "Instalación"
+  | "Puesta en marcha"
+  | "Reparación"
+  | "Venta de repuestos"
+  | "Servicio integral";
 
 export type ModoCotizacion =
-  | "Servicio general"
-  | "Por equipo"
-  | "Venta de repuestos";
+  | "Servicio General"
+  | "Por Equipos"
+  | "Venta de Repuestos"
+  | "Alquiler";
 
 export type Cotizacion = {
   id: string;
   empresa_id: string;
   cliente_id: string;
   codigo: string;
+  numero: string | null;
   titulo: string;
   descripcion: string;
   subtotal: number;
@@ -26,6 +32,8 @@ export type Cotizacion = {
   estado: CotizacionEstado;
   tipo_cotizacion: TipoServicio | null;
   modo_servicio: ModoCotizacion | null;
+  cliente_nombre: string | null;
+  empresa_nombre: string | null;
   created_at?: string;
   updated_at?: string;
 };
@@ -75,6 +83,7 @@ export type CotizacionFormValues = {
   actividades_generales: CotizacionLineaFormValues[];
   equipos: CotizacionEquipoFormValues[];
   productos: CotizacionProductoFormValues[];
+  alquileres: CotizacionLineaFormValues[];
 };
 
 export type CotizacionDetalle = CotizacionFormValues & {
